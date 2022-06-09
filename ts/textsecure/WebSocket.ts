@@ -48,9 +48,11 @@ export function connect<Resource extends IResource>({
   const headers = {
     'User-Agent': getUserAgent(version),
   };
+  console.log("certificateAuthority:" + certificateAuthority);
   const client = new WebSocketClient({
     tlsOptions: {
-      ca: certificateAuthority,
+      //ca: certificateAuthority,
+      rejectUnauthorized:false,
       agent: proxyAgent,
     },
     maxReceivedFrameSize: 0x210000,

@@ -287,7 +287,7 @@ async function _promiseAjax(
     agents[cacheKey] = {
       agent: proxyUrl
         ? new ProxyAgent(proxyUrl)
-        : new Agent({ keepAlive: true }),
+        : new Agent({ keepAlive: true,rejectUnauthorized: false}),
       timestamp: Date.now(),
     };
   }
@@ -303,7 +303,7 @@ async function _promiseAjax(
     } as FetchHeaderListType,
     redirect: options.redirect,
     agent,
-    ca: options.certificateAuthority,
+    //ca: options.certificateAuthority,
     timeout,
     abortSignal: options.abortSignal,
   };

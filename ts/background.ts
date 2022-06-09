@@ -1772,7 +1772,8 @@ export async function startApp(): Promise<void> {
       connect();
       window.reduxActions.app.openInbox();
     } else {
-      window.reduxActions.app.openInstaller();
+      //window.reduxActions.app.openInstaller();
+      window.reduxActions.app.openStandalone();
     }
 
     window.Whisper.events.on('contactsync', () => {
