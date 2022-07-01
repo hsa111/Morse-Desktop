@@ -29,7 +29,7 @@ export const StandaloneRegistrationView = Whisper.View.extend({
   },
   events: {
     'validation input.number': 'onValidation',
-    'click #request-voice': 'requestVoice',
+    //'click #request-voice': 'requestVoice',
     'click #request-sms': 'requestSMSVerification',
     'change #code': 'onChangeCode',
     'click #verifyCode': 'verifyCode',
@@ -48,6 +48,7 @@ export const StandaloneRegistrationView = Whisper.View.extend({
     try {
       await this.accountManager.registerSingleDevice(number, verificationCode);
       this.$el.trigger('openInbox');
+      //window.reduxActions.app.openInbox();
     } catch (err) {
       this.log(err);
     }
@@ -70,10 +71,13 @@ export const StandaloneRegistrationView = Whisper.View.extend({
   },
   onValidation() {
     if (this.$('#number-container').hasClass('valid')) {
-      this.$('#request-sms, #request-voice').removeAttr('disabled');
+      //this.$('#request-sms, #request-voice').removeAttr('disabled');
+      this.$('#request-sms').removeAttr('disabled');
     } else {
-      this.$('#request-sms, #request-voice').prop('disabled', 'disabled');
+      //this.$('#request-sms, #request-voice').prop('disabled', 'disabled');
+      this.$('#request-sms').prop('disabled', 'disabled');
     }
+    this.$('#request-sms').prop('disabled', 'disabled');
   },
   onChangeCode() {
     if (!this.validateCode()) {

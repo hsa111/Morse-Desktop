@@ -39,7 +39,8 @@
         var parsedNumber = libphonenumber.parse(number, defaultRegionCode);
 
         return {
-          isValidNumber: libphonenumber.isValidNumber(parsedNumber),
+          //isValidNumber: libphonenumber.isValidNumber(parsedNumber),
+          isValidNumber: true,
           regionCode: libphonenumber.getRegionCodeForNumber(parsedNumber),
           countryCode: '' + parsedNumber.getCountryCode(),
           nationalNumber: '' + parsedNumber.getNationalNumber(),

@@ -13,16 +13,17 @@ import type { Response } from 'node-fetch';
 import fetch from 'node-fetch';
 import ProxyAgent from 'proxy-agent';
 import { Agent } from 'https';
-import pProps from 'p-props';
+//import pProps from 'p-props';
 import type { Dictionary } from 'lodash';
-import { compact, escapeRegExp, isNumber, mapValues, zipObject } from 'lodash';
-import { createVerify } from 'crypto';
-import { pki } from 'node-forge';
+// import { compact, escapeRegExp, isNumber, zipObject } from 'lodash';
+import { escapeRegExp, isNumber, zipObject } from 'lodash';
+// import { createVerify } from 'crypto';
+// import { pki } from 'node-forge';
 import is from '@sindresorhus/is';
 import PQueue from 'p-queue';
 import { v4 as getGuid } from 'uuid';
 import { z } from 'zod';
-import Long from 'long';
+// import Long from 'long';
 import type { Readable } from 'stream';
 
 import { assert, strictAssert } from '../util/assert';
@@ -37,14 +38,14 @@ import { isPackIdValid, redactPackId } from '../types/Stickers';
 import type { UUIDStringType } from '../types/UUID';
 import * as Bytes from '../Bytes';
 import {
-  constantTimeEqual,
-  decryptAesGcm,
-  deriveSecrets,
-  encryptCdsDiscoveryRequest,
+  //constantTimeEqual,
+  //decryptAesGcm,
+  //deriveSecrets,
+  //encryptCdsDiscoveryRequest,
   getRandomValue,
-  splitUuids,
+  //splitUuids,
 } from '../Crypto';
-import { calculateAgreement, generateKeyPair } from '../Curve';
+//import { calculateAgreement, generateKeyPair } from '../Curve';
 import * as linkPreviewFetch from '../linkPreviews/linkPreviewFetch';
 import { isBadgeImageFileUrlValid } from '../badges/isBadgeImageFileUrlValid';
 
@@ -63,48 +64,49 @@ import type { WebAPICredentials, IRequestHandler } from './Types.d';
 import { handleStatusCode, translateError } from './Utils';
 import * as log from '../logging/log';
 import { maybeParseUrl } from '../util/url';
+import { UUID } from '../types/UUID';
 
 // Note: this will break some code that expects to be able to use err.response when a
 //   web request fails, because it will force it to text. But it is very useful for
 //   debugging failed requests.
 const DEBUG = false;
 
-type SgxConstantsType = {
-  SGX_FLAGS_INITTED: Long;
-  SGX_FLAGS_DEBUG: Long;
-  SGX_FLAGS_MODE64BIT: Long;
-  SGX_FLAGS_PROVISION_KEY: Long;
-  SGX_FLAGS_EINITTOKEN_KEY: Long;
-  SGX_FLAGS_RESERVED: Long;
-  SGX_XFRM_LEGACY: Long;
-  SGX_XFRM_AVX: Long;
-  SGX_XFRM_RESERVED: Long;
-};
+// type SgxConstantsType = {
+//   SGX_FLAGS_INITTED: Long;
+//   SGX_FLAGS_DEBUG: Long;
+//   SGX_FLAGS_MODE64BIT: Long;
+//   SGX_FLAGS_PROVISION_KEY: Long;
+//   SGX_FLAGS_EINITTOKEN_KEY: Long;
+//   SGX_FLAGS_RESERVED: Long;
+//   SGX_XFRM_LEGACY: Long;
+//   SGX_XFRM_AVX: Long;
+//   SGX_XFRM_RESERVED: Long;
+// };
 
-let sgxConstantCache: SgxConstantsType | null = null;
+// let sgxConstantCache: SgxConstantsType | null = null;
 
-function makeLong(value: string): Long {
-  return Long.fromString(value);
-}
-function getSgxConstants() {
-  if (sgxConstantCache) {
-    return sgxConstantCache;
-  }
+// function makeLong(value: string): Long {
+//   return Long.fromString(value);
+// }
+// function getSgxConstants() {
+//   if (sgxConstantCache) {
+//     return sgxConstantCache;
+//   }
 
-  sgxConstantCache = {
-    SGX_FLAGS_INITTED: makeLong('x0000000000000001L'),
-    SGX_FLAGS_DEBUG: makeLong('x0000000000000002L'),
-    SGX_FLAGS_MODE64BIT: makeLong('x0000000000000004L'),
-    SGX_FLAGS_PROVISION_KEY: makeLong('x0000000000000004L'),
-    SGX_FLAGS_EINITTOKEN_KEY: makeLong('x0000000000000004L'),
-    SGX_FLAGS_RESERVED: makeLong('xFFFFFFFFFFFFFFC8L'),
-    SGX_XFRM_LEGACY: makeLong('x0000000000000003L'),
-    SGX_XFRM_AVX: makeLong('x0000000000000006L'),
-    SGX_XFRM_RESERVED: makeLong('xFFFFFFFFFFFFFFF8L'),
-  };
+//   sgxConstantCache = {
+//     SGX_FLAGS_INITTED: makeLong('x0000000000000001L'),
+//     SGX_FLAGS_DEBUG: makeLong('x0000000000000002L'),
+//     SGX_FLAGS_MODE64BIT: makeLong('x0000000000000004L'),
+//     SGX_FLAGS_PROVISION_KEY: makeLong('x0000000000000004L'),
+//     SGX_FLAGS_EINITTOKEN_KEY: makeLong('x0000000000000004L'),
+//     SGX_FLAGS_RESERVED: makeLong('xFFFFFFFFFFFFFFC8L'),
+//     SGX_XFRM_LEGACY: makeLong('x0000000000000003L'),
+//     SGX_XFRM_AVX: makeLong('x0000000000000006L'),
+//     SGX_XFRM_RESERVED: makeLong('xFFFFFFFFFFFFFFF8L'),
+//   };
 
-  return sgxConstantCache;
-}
+//   return sgxConstantCache;
+// }
 
 function _createRedactor(
   ...toReplace: ReadonlyArray<string | undefined>
@@ -521,6 +523,7 @@ const URL_CALLS = {
   deliveryCert: 'v1/certificate/delivery',
   devices: 'v1/devices',
   directoryAuth: 'v1/directory/auth',
+  directoryTokens: 'v1/directory/tokens',
   directoryAuthV2: 'v2/directory/auth',
   discovery: 'v1/discovery',
   getGroupAvatarUpload: 'v1/groups/avatar/form',
@@ -2053,7 +2056,7 @@ export function initialize({
         ? cdnUrlObject[cdnNumber] || cdnUrlObject['0']
         : cdnUrlObject['0'];
       // This is going to the CDN, not the service, so we use _outerAjax
-      const stream = await _outerAjax(`${cdnUrl}/attachments/${cdnKey}`, {
+      const stream = await _outerAjax(`${cdnUrl}/${cdnKey}`, {
         certificateAuthority,
         proxyUrl,
         responseType: 'stream',
@@ -2087,7 +2090,7 @@ export function initialize({
       const params = makePutParams(response, encryptedBin);
 
       // This is going to the CDN, not the service, so we use _outerAjax
-      await _outerAjax(`${cdnUrlObject['0']}/attachments/`, {
+      await _outerAjax(`${cdnUrlObject['0']}/`, {
         ...params,
         certificateAuthority,
         proxyUrl,
@@ -2521,390 +2524,352 @@ export function initialize({
       })) as { username: string; password: string };
     }
 
-    function validateAttestationQuote({
-      serverStaticPublic,
-      quote: quoteBytes,
-    }: {
-      serverStaticPublic: Uint8Array;
-      quote: Uint8Array;
-    }) {
-      const SGX_CONSTANTS = getSgxConstants();
-      const quote = Buffer.from(quoteBytes);
+    // function validateAttestationQuote({
+    //   serverStaticPublic,
+    //   quote: quoteBytes,
+    // }: {
+    //   serverStaticPublic: Uint8Array;
+    //   quote: Uint8Array;
+    // }) {
+    //   const SGX_CONSTANTS = getSgxConstants();
+    //   const quote = Buffer.from(quoteBytes);
 
-      const quoteVersion = quote.readInt16LE(0) & 0xffff;
-      if (quoteVersion < 0 || quoteVersion > 2) {
-        throw new Error(`Unknown version ${quoteVersion}`);
-      }
+    //   const quoteVersion = quote.readInt16LE(0) & 0xffff;
+    //   if (quoteVersion < 0 || quoteVersion > 2) {
+    //     throw new Error(`Unknown version ${quoteVersion}`);
+    //   }
 
-      const miscSelect = quote.slice(64, 64 + 4);
-      if (!miscSelect.every(byte => byte === 0)) {
-        throw new Error('Quote miscSelect invalid!');
-      }
+    //   const miscSelect = quote.slice(64, 64 + 4);
+    //   if (!miscSelect.every(byte => byte === 0)) {
+    //     throw new Error('Quote miscSelect invalid!');
+    //   }
 
-      const reserved1 = quote.slice(68, 68 + 28);
-      if (!reserved1.every(byte => byte === 0)) {
-        throw new Error('Quote reserved1 invalid!');
-      }
+    //   const reserved1 = quote.slice(68, 68 + 28);
+    //   if (!reserved1.every(byte => byte === 0)) {
+    //     throw new Error('Quote reserved1 invalid!');
+    //   }
 
-      const flags = Long.fromBytesLE(
-        Array.from(quote.slice(96, 96 + 8).values())
-      );
-      if (
-        flags.and(SGX_CONSTANTS.SGX_FLAGS_RESERVED).notEquals(0) ||
-        flags.and(SGX_CONSTANTS.SGX_FLAGS_INITTED).equals(0) ||
-        flags.and(SGX_CONSTANTS.SGX_FLAGS_MODE64BIT).equals(0)
-      ) {
-        throw new Error(`Quote flags invalid ${flags.toString()}`);
-      }
+    //   const flags = Long.fromBytesLE(
+    //     Array.from(quote.slice(96, 96 + 8).values())
+    //   );
+    //   if (
+    //     flags.and(SGX_CONSTANTS.SGX_FLAGS_RESERVED).notEquals(0) ||
+    //     flags.and(SGX_CONSTANTS.SGX_FLAGS_INITTED).equals(0) ||
+    //     flags.and(SGX_CONSTANTS.SGX_FLAGS_MODE64BIT).equals(0)
+    //   ) {
+    //     throw new Error(`Quote flags invalid ${flags.toString()}`);
+    //   }
 
-      const xfrm = Long.fromBytesLE(
-        Array.from(quote.slice(104, 104 + 8).values())
-      );
-      if (xfrm.and(SGX_CONSTANTS.SGX_XFRM_RESERVED).notEquals(0)) {
-        throw new Error(`Quote xfrm invalid ${xfrm}`);
-      }
+    //   const xfrm = Long.fromBytesLE(
+    //     Array.from(quote.slice(104, 104 + 8).values())
+    //   );
+    //   if (xfrm.and(SGX_CONSTANTS.SGX_XFRM_RESERVED).notEquals(0)) {
+    //     throw new Error(`Quote xfrm invalid ${xfrm}`);
+    //   }
 
-      const mrenclave = quote.slice(112, 112 + 32);
-      const enclaveIdBytes = Bytes.fromHex(directoryEnclaveId);
-      if (mrenclave.compare(enclaveIdBytes) !== 0) {
-        throw new Error('Quote mrenclave invalid!');
-      }
+    //   const mrenclave = quote.slice(112, 112 + 32);
+    //   const enclaveIdBytes = Bytes.fromHex(directoryEnclaveId);
+    //   if (mrenclave.compare(enclaveIdBytes) !== 0) {
+    //     throw new Error('Quote mrenclave invalid!');
+    //   }
 
-      const reserved2 = quote.slice(144, 144 + 32);
-      if (!reserved2.every(byte => byte === 0)) {
-        throw new Error('Quote reserved2 invalid!');
-      }
+    //   const reserved2 = quote.slice(144, 144 + 32);
+    //   if (!reserved2.every(byte => byte === 0)) {
+    //     throw new Error('Quote reserved2 invalid!');
+    //   }
 
-      const reportData = quote.slice(368, 368 + 64);
-      const serverStaticPublicBytes = serverStaticPublic;
-      if (
-        !reportData.every((byte, index) => {
-          if (index >= 32) {
-            return byte === 0;
-          }
-          return byte === serverStaticPublicBytes[index];
-        })
-      ) {
-        throw new Error('Quote report_data invalid!');
-      }
+    //   const reportData = quote.slice(368, 368 + 64);
+    //   const serverStaticPublicBytes = serverStaticPublic;
+    //   if (
+    //     !reportData.every((byte, index) => {
+    //       if (index >= 32) {
+    //         return byte === 0;
+    //       }
+    //       return byte === serverStaticPublicBytes[index];
+    //     })
+    //   ) {
+    //     throw new Error('Quote report_data invalid!');
+    //   }
 
-      const reserved3 = quote.slice(208, 208 + 96);
-      if (!reserved3.every(byte => byte === 0)) {
-        throw new Error('Quote reserved3 invalid!');
-      }
+    //   const reserved3 = quote.slice(208, 208 + 96);
+    //   if (!reserved3.every(byte => byte === 0)) {
+    //     throw new Error('Quote reserved3 invalid!');
+    //   }
 
-      const reserved4 = quote.slice(308, 308 + 60);
-      if (!reserved4.every(byte => byte === 0)) {
-        throw new Error('Quote reserved4 invalid!');
-      }
+    //   const reserved4 = quote.slice(308, 308 + 60);
+    //   if (!reserved4.every(byte => byte === 0)) {
+    //     throw new Error('Quote reserved4 invalid!');
+    //   }
 
-      const signatureLength = quote.readInt32LE(432) >>> 0;
-      if (signatureLength !== quote.byteLength - 436) {
-        throw new Error(`Bad signatureLength ${signatureLength}`);
-      }
+    //   const signatureLength = quote.readInt32LE(432) >>> 0;
+    //   if (signatureLength !== quote.byteLength - 436) {
+    //     throw new Error(`Bad signatureLength ${signatureLength}`);
+    //   }
 
-      // const signature = quote.slice(436, 436 + signatureLength);
-    }
+    //   // const signature = quote.slice(436, 436 + signatureLength);
+    // }
 
-    function validateAttestationSignatureBody(
-      signatureBody: {
-        timestamp: string;
-        version: number;
-        isvEnclaveQuoteBody: string;
-        isvEnclaveQuoteStatus: string;
-      },
-      encodedQuote: string
-    ) {
-      // Parse timestamp as UTC
-      const { timestamp } = signatureBody;
-      const utcTimestamp = timestamp.endsWith('Z')
-        ? timestamp
-        : `${timestamp}Z`;
-      const signatureTime = new Date(utcTimestamp).getTime();
+    // function validateAttestationSignatureBody(
+    //   signatureBody: {
+    //     timestamp: string;
+    //     version: number;
+    //     isvEnclaveQuoteBody: string;
+    //     isvEnclaveQuoteStatus: string;
+    //   },
+    //   encodedQuote: string
+    // ) {
+    //   // Parse timestamp as UTC
+    //   const { timestamp } = signatureBody;
+    //   const utcTimestamp = timestamp.endsWith('Z')
+    //     ? timestamp
+    //     : `${timestamp}Z`;
+    //   const signatureTime = new Date(utcTimestamp).getTime();
 
-      const now = Date.now();
-      if (signatureBody.version !== 3) {
-        throw new Error('Attestation signature invalid version!');
-      }
-      if (!encodedQuote.startsWith(signatureBody.isvEnclaveQuoteBody)) {
-        throw new Error('Attestion signature mismatches quote!');
-      }
-      if (signatureBody.isvEnclaveQuoteStatus !== 'OK') {
-        throw new Error('Attestation signature status not "OK"!');
-      }
-      if (signatureTime < now - 24 * 60 * 60 * 1000) {
-        throw new Error('Attestation signature timestamp older than 24 hours!');
-      }
-    }
+    //   const now = Date.now();
+    //   if (signatureBody.version !== 3) {
+    //     throw new Error('Attestation signature invalid version!');
+    //   }
+    //   if (!encodedQuote.startsWith(signatureBody.isvEnclaveQuoteBody)) {
+    //     throw new Error('Attestion signature mismatches quote!');
+    //   }
+    //   if (signatureBody.isvEnclaveQuoteStatus !== 'OK') {
+    //     throw new Error('Attestation signature status not "OK"!');
+    //   }
+    //   if (signatureTime < now - 24 * 60 * 60 * 1000) {
+    //     throw new Error('Attestation signature timestamp older than 24 hours!');
+    //   }
+    // }
 
-    async function validateAttestationSignature(
-      signature: Uint8Array,
-      signatureBody: string,
-      certificates: string
-    ) {
-      const CERT_PREFIX = '-----BEGIN CERTIFICATE-----';
-      const pem = compact(
-        certificates.split(CERT_PREFIX).map(match => {
-          if (!match) {
-            return null;
-          }
+    // async function validateAttestationSignature(
+    //   signature: Uint8Array,
+    //   signatureBody: string,
+    //   certificates: string
+    // ) {
+    //   const CERT_PREFIX = '-----BEGIN CERTIFICATE-----';
+    //   const pem = compact(
+    //     certificates.split(CERT_PREFIX).map(match => {
+    //       if (!match) {
+    //         return null;
+    //       }
 
-          return `${CERT_PREFIX}${match}`;
-        })
-      );
-      if (pem.length < 2) {
-        throw new Error(
-          `validateAttestationSignature: Expect two or more entries; got ${pem.length}`
-        );
-      }
+    //       return `${CERT_PREFIX}${match}`;
+    //     })
+    //   );
+    //   if (pem.length < 2) {
+    //     throw new Error(
+    //       `validateAttestationSignature: Expect two or more entries; got ${pem.length}`
+    //     );
+    //   }
 
-      const verify = createVerify('RSA-SHA256');
-      verify.update(Buffer.from(Bytes.fromString(signatureBody)));
-      const isValid = verify.verify(pem[0], Buffer.from(signature));
-      if (!isValid) {
-        throw new Error('Validation of signature across signatureBody failed!');
-      }
+    //   const verify = createVerify('RSA-SHA256');
+    //   verify.update(Buffer.from(Bytes.fromString(signatureBody)));
+    //   const isValid = verify.verify(pem[0], Buffer.from(signature));
+    //   if (!isValid) {
+    //     throw new Error('Validation of signature across signatureBody failed!');
+    //   }
 
-      const caStore = pki.createCaStore([directoryTrustAnchor]);
-      const chain = compact(pem.map(cert => pki.certificateFromPem(cert)));
-      const isChainValid = pki.verifyCertificateChain(caStore, chain);
-      if (!isChainValid) {
-        throw new Error('Validation of certificate chain failed!');
-      }
+    //   const caStore = pki.createCaStore([directoryTrustAnchor]);
+    //   const chain = compact(pem.map(cert => pki.certificateFromPem(cert)));
+    //   const isChainValid = pki.verifyCertificateChain(caStore, chain);
+    //   if (!isChainValid) {
+    //     throw new Error('Validation of certificate chain failed!');
+    //   }
 
-      const leafCert = chain[0];
-      const fieldCN = leafCert.subject.getField('CN');
-      if (
-        !fieldCN ||
-        fieldCN.value !== 'Intel SGX Attestation Report Signing'
-      ) {
-        throw new Error('Leaf cert CN field had unexpected value');
-      }
-      const fieldO = leafCert.subject.getField('O');
-      if (!fieldO || fieldO.value !== 'Intel Corporation') {
-        throw new Error('Leaf cert O field had unexpected value');
-      }
-      const fieldL = leafCert.subject.getField('L');
-      if (!fieldL || fieldL.value !== 'Santa Clara') {
-        throw new Error('Leaf cert L field had unexpected value');
-      }
-      const fieldST = leafCert.subject.getField('ST');
-      if (!fieldST || fieldST.value !== 'CA') {
-        throw new Error('Leaf cert ST field had unexpected value');
-      }
-      const fieldC = leafCert.subject.getField('C');
-      if (!fieldC || fieldC.value !== 'US') {
-        throw new Error('Leaf cert C field had unexpected value');
-      }
-    }
+    //   const leafCert = chain[0];
+    //   const fieldCN = leafCert.subject.getField('CN');
+    //   if (
+    //     !fieldCN ||
+    //     fieldCN.value !== 'Intel SGX Attestation Report Signing'
+    //   ) {
+    //     throw new Error('Leaf cert CN field had unexpected value');
+    //   }
+    //   const fieldO = leafCert.subject.getField('O');
+    //   if (!fieldO || fieldO.value !== 'Intel Corporation') {
+    //     throw new Error('Leaf cert O field had unexpected value');
+    //   }
+    //   const fieldL = leafCert.subject.getField('L');
+    //   if (!fieldL || fieldL.value !== 'Santa Clara') {
+    //     throw new Error('Leaf cert L field had unexpected value');
+    //   }
+    //   const fieldST = leafCert.subject.getField('ST');
+    //   if (!fieldST || fieldST.value !== 'CA') {
+    //     throw new Error('Leaf cert ST field had unexpected value');
+    //   }
+    //   const fieldC = leafCert.subject.getField('C');
+    //   if (!fieldC || fieldC.value !== 'US') {
+    //     throw new Error('Leaf cert C field had unexpected value');
+    //   }
+    // }
 
-    async function putRemoteAttestation(auth: {
-      username: string;
-      password: string;
-    }) {
-      const keyPair = generateKeyPair();
-      const { privKey, pubKey } = keyPair;
-      // Remove first "key type" byte from public key
-      const slicedPubKey = pubKey.slice(1);
-      const pubKeyBase64 = Bytes.toBase64(slicedPubKey);
-      // Do request
-      const data = JSON.stringify({ clientPublic: pubKeyBase64 });
-      const result: JSONWithDetailsType = (await _outerAjax(null, {
-        certificateAuthority,
-        type: 'PUT',
-        contentType: 'application/json; charset=utf-8',
-        host: directoryUrl,
-        path: `${URL_CALLS.attestation}/${directoryEnclaveId}`,
-        user: auth.username,
-        password: auth.password,
-        responseType: 'jsonwithdetails',
-        data,
-        timeout: 30000,
-        version,
-      })) as JSONWithDetailsType;
+    // async function putRemoteAttestation(auth: {
+    //   username: string;
+    //   password: string;
+    // }) {
+    //   const keyPair = generateKeyPair();
+    //   const { privKey, pubKey } = keyPair;
+    //   // Remove first "key type" byte from public key
+    //   const slicedPubKey = pubKey.slice(1);
+    //   const pubKeyBase64 = Bytes.toBase64(slicedPubKey);
+    //   // Do request
+    //   const data = JSON.stringify({ clientPublic: pubKeyBase64 });
+    //   const result: JSONWithDetailsType = (await _outerAjax(null, {
+    //     certificateAuthority,
+    //     type: 'PUT',
+    //     contentType: 'application/json; charset=utf-8',
+    //     host: directoryUrl,
+    //     path: `${URL_CALLS.attestation}/${directoryEnclaveId}`,
+    //     user: auth.username,
+    //     password: auth.password,
+    //     responseType: 'jsonwithdetails',
+    //     data,
+    //     timeout: 30000,
+    //     version,
+    //   })) as JSONWithDetailsType;
 
-      const { data: responseBody, response } = result as {
-        data: {
-          attestations: Record<
-            string,
-            {
-              ciphertext: string;
-              iv: string;
-              quote: string;
-              serverEphemeralPublic: string;
-              serverStaticPublic: string;
-              signature: string;
-              signatureBody: string;
-              tag: string;
-              certificates: string;
-            }
-          >;
-        };
-        response: Response;
-      };
+    //   const { data: responseBody, response } = result as {
+    //     data: {
+    //       attestations: Record<
+    //         string,
+    //         {
+    //           ciphertext: string;
+    //           iv: string;
+    //           quote: string;
+    //           serverEphemeralPublic: string;
+    //           serverStaticPublic: string;
+    //           signature: string;
+    //           signatureBody: string;
+    //           tag: string;
+    //           certificates: string;
+    //         }
+    //       >;
+    //     };
+    //     response: Response;
+    //   };
 
-      const attestationsLength = Object.keys(responseBody.attestations).length;
-      if (attestationsLength > 3) {
-        throw new Error(
-          'Got more than three attestations from the Contact Discovery Service'
-        );
-      }
-      if (attestationsLength < 1) {
-        throw new Error(
-          'Got no attestations from the Contact Discovery Service'
-        );
-      }
+    //   const attestationsLength = Object.keys(responseBody.attestations).length;
+    //   if (attestationsLength > 3) {
+    //     throw new Error(
+    //       'Got more than three attestations from the Contact Discovery Service'
+    //     );
+    //   }
+    //   if (attestationsLength < 1) {
+    //     throw new Error(
+    //       'Got no attestations from the Contact Discovery Service'
+    //     );
+    //   }
 
-      const cookie = response.headers.get('set-cookie');
+    //   const cookie = response.headers.get('set-cookie');
 
-      // Decode response
-      return {
-        cookie,
-        attestations: await pProps(
-          responseBody.attestations,
-          async attestation => {
-            const decoded = {
-              ...attestation,
-              ciphertext: Bytes.fromBase64(attestation.ciphertext),
-              iv: Bytes.fromBase64(attestation.iv),
-              quote: Bytes.fromBase64(attestation.quote),
-              serverEphemeralPublic: Bytes.fromBase64(
-                attestation.serverEphemeralPublic
-              ),
-              serverStaticPublic: Bytes.fromBase64(
-                attestation.serverStaticPublic
-              ),
-              signature: Bytes.fromBase64(attestation.signature),
-              tag: Bytes.fromBase64(attestation.tag),
-            };
+    //   // Decode response
+    //   return {
+    //     cookie,
+    //     attestations: await pProps(
+    //       responseBody.attestations,
+    //       async attestation => {
+    //         const decoded = {
+    //           ...attestation,
+    //           ciphertext: Bytes.fromBase64(attestation.ciphertext),
+    //           iv: Bytes.fromBase64(attestation.iv),
+    //           quote: Bytes.fromBase64(attestation.quote),
+    //           serverEphemeralPublic: Bytes.fromBase64(
+    //             attestation.serverEphemeralPublic
+    //           ),
+    //           serverStaticPublic: Bytes.fromBase64(
+    //             attestation.serverStaticPublic
+    //           ),
+    //           signature: Bytes.fromBase64(attestation.signature),
+    //           tag: Bytes.fromBase64(attestation.tag),
+    //         };
 
-            // Validate response
-            validateAttestationQuote(decoded);
-            validateAttestationSignatureBody(
-              JSON.parse(decoded.signatureBody),
-              attestation.quote
-            );
-            await validateAttestationSignature(
-              decoded.signature,
-              decoded.signatureBody,
-              decoded.certificates
-            );
+    //         // Validate response
+    //         validateAttestationQuote(decoded);
+    //         validateAttestationSignatureBody(
+    //           JSON.parse(decoded.signatureBody),
+    //           attestation.quote
+    //         );
+    //         await validateAttestationSignature(
+    //           decoded.signature,
+    //           decoded.signatureBody,
+    //           decoded.certificates
+    //         );
 
-            // Derive key
-            const ephemeralToEphemeral = calculateAgreement(
-              decoded.serverEphemeralPublic,
-              privKey
-            );
-            const ephemeralToStatic = calculateAgreement(
-              decoded.serverStaticPublic,
-              privKey
-            );
-            const masterSecret = Bytes.concatenate([
-              ephemeralToEphemeral,
-              ephemeralToStatic,
-            ]);
-            const publicKeys = Bytes.concatenate([
-              slicedPubKey,
-              decoded.serverEphemeralPublic,
-              decoded.serverStaticPublic,
-            ]);
-            const [clientKey, serverKey] = deriveSecrets(
-              masterSecret,
-              publicKeys,
-              new Uint8Array(0)
-            );
+    //         // Derive key
+    //         const ephemeralToEphemeral = calculateAgreement(
+    //           decoded.serverEphemeralPublic,
+    //           privKey
+    //         );
+    //         const ephemeralToStatic = calculateAgreement(
+    //           decoded.serverStaticPublic,
+    //           privKey
+    //         );
+    //         const masterSecret = Bytes.concatenate([
+    //           ephemeralToEphemeral,
+    //           ephemeralToStatic,
+    //         ]);
+    //         const publicKeys = Bytes.concatenate([
+    //           slicedPubKey,
+    //           decoded.serverEphemeralPublic,
+    //           decoded.serverStaticPublic,
+    //         ]);
+    //         const [clientKey, serverKey] = deriveSecrets(
+    //           masterSecret,
+    //           publicKeys,
+    //           new Uint8Array(0)
+    //         );
 
-            // Decrypt ciphertext into requestId
-            const requestId = decryptAesGcm(
-              serverKey,
-              decoded.iv,
-              Bytes.concatenate([decoded.ciphertext, decoded.tag])
-            );
+    //         // Decrypt ciphertext into requestId
+    //         const requestId = decryptAesGcm(
+    //           serverKey,
+    //           decoded.iv,
+    //           Bytes.concatenate([decoded.ciphertext, decoded.tag])
+    //         );
 
-            return {
-              clientKey,
-              serverKey,
-              requestId,
-            };
-          }
-        ),
-      };
-    }
+    //         return {
+    //           clientKey,
+    //           serverKey,
+    //           requestId,
+    //         };
+    //       }
+    //     ),
+    //   };
+    // }
 
     async function getUuidsForE164s(
       e164s: ReadonlyArray<string>
     ): Promise<Dictionary<UUIDStringType | null>> {
       const directoryAuth = await getDirectoryAuth();
-      const attestationResult = await putRemoteAttestation(directoryAuth);
-
-      // Encrypt data for discovery
-      const data = await encryptCdsDiscoveryRequest(
-        attestationResult.attestations,
-        e164s
-      );
-      const { cookie } = attestationResult;
+      console.log(directoryAuth);
 
       // Send discovery request
-      const discoveryResponse = (await _outerAjax(null, {
-        certificateAuthority,
-        type: 'PUT',
-        headers: cookie
-          ? {
-              cookie,
-            }
-          : undefined,
-        contentType: 'application/json; charset=utf-8',
-        host: directoryUrl,
-        path: `${URL_CALLS.discovery}/${directoryEnclaveId}`,
-        user: directoryAuth.username,
-        password: directoryAuth.password,
+      // const discoveryResponse = (await _outerAjax(null, {
+      //   type: 'PUT',
+      //   contentType: 'application/json; charset=utf-8',
+      //   host: url,
+      //   path: `${URL_CALLS.directoryTokens}`,
+      //   user: directoryAuth.username,
+      //   password: directoryAuth.password,
+      //   responseType: 'json',
+      //   timeout: 30000,
+      //   data: JSON.stringify(e164s),
+      //   version,
+      // })) 
+
+      const discoveryResponse = (await _ajax({
+        call: 'directoryTokens',
+        httpType: 'PUT',
         responseType: 'json',
-        timeout: 30000,
-        data: JSON.stringify(data),
-        version,
-      })) as {
-        requestId: string;
-        iv: string;
-        data: string;
-        mac: string;
-      };
+        jsonData:{contacts:e164s}
+      })) as { contacts:{number:string;token:string}[]}
 
-      // Decode discovery request response
-      const decodedDiscoveryResponse = mapValues(discoveryResponse, value => {
-        return Bytes.fromBase64(value);
-      }) as unknown as {
-        [K in keyof typeof discoveryResponse]: Uint8Array;
-      };
+      console.log(discoveryResponse);
+      var numbers:string[] = [];
+      var tokens:UUIDStringType[] = [];
 
-      const returnedAttestation = Object.values(
-        attestationResult.attestations
-      ).find(at =>
-        constantTimeEqual(at.requestId, decodedDiscoveryResponse.requestId)
-      );
-      if (!returnedAttestation) {
-        throw new Error('No known attestations returned from CDS');
-      }
-
-      // Decrypt discovery response
-      const decryptedDiscoveryData = decryptAesGcm(
-        returnedAttestation.serverKey,
-        decodedDiscoveryResponse.iv,
-        Bytes.concatenate([
-          decodedDiscoveryResponse.data,
-          decodedDiscoveryResponse.mac,
-        ])
-      );
-
-      // Process and return result
-      const uuids = splitUuids(decryptedDiscoveryData);
-
-      if (uuids.length !== e164s.length) {
-        throw new Error(
-          'Returned set of UUIDs did not match returned set of e164s!'
-        );
-      }
-
-      return zipObject(e164s, uuids);
+      discoveryResponse.contacts.forEach(contact => {
+        numbers.push(contact.number);
+        tokens.push(UUID.cast(contact.token));
+      });
+      return zipObject(numbers, tokens);;
     }
 
     async function getUuidsForE164sV2(

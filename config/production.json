@@ -1,12 +1,12 @@
 {
-  "serverUrl": "https://chat.signal.org",
-  "storageUrl": "https://storage.signal.org",
-  "directoryUrl": "https://api.directory.signal.org",
+  "serverUrl": "https://chat.devplusone.com",
+  "storageUrl": "https://storage.devplusone.com",
+  "directoryUrl": "https://api-directory.devplusone.com",
   "cdn": {
-    "0": "https://cdn.signal.org",
-    "2": "https://cdn2.signal.org"
+    "0": "https://cdn.devplusone.com",
+    "2": "https://cdn2.devplusone.com"
   },
-  "serverPublicParams": "AMhf5ywVwITZMsff/eCyudZx9JDmkkkbV6PInzG4p8x3VqVJSFiMvnvlEKWuRob/1eaIetR31IYeAbm0NdOuHH8Qi+Rexi1wLlpzIo1gstHWBfZzy1+qHRV5A4TqPp15YzBPm0WSggW6PbSn+F4lf57VCnHF7p8SvzAA2ZZJPYJURt8X7bbg+H3i+PEjH9DXItNEqs2sNcug37xZQDLm7X36nOoGPs54XsEGzPdEV+itQNGUFEjY6X9Uv+Acuks7NpyGvCoKxGwgKgE5XyJ+nNKlyHHOLb6N1NuHyBrZrgtY",
-  "serverTrustRoot": "BXu6QIKVz5MA8gstzfOgRQGqyLqOwNKHL6INkv3IHWMF",
-  "updatesEnabled": true
+  "serverPublicParams": "AI5PGST44LrbLSejhACttNcT+ZJ31M1sqAMTRB2nuRhWuHHh1uM46dE5t3RQxADIpdueBjlpyhWKClQnj8HYPEnKGtqwp8GipRIiBYLdURjmD45LujmgLDqG02sDNKC6TeAV8HfJYycYWpLyhZ7Oyisr3gUM/IwaMQAkN/pStyNSkFAYCBhp6xRgKpML4bhmUmTwEUtkiXGZZXVWSbNiK28iOZx14ndssXmklNFoBMtvBjOx/12yScNcyXajY6M8PSwgQFiCJ2QdGYHoT9wfZ3vtX8bDcp+D3jOmuYUJXE18",
+  "serverTrustRoot": "BbGoDNekoM+bcgnwlBBW1FaWZ44FZn1hf0K7AaLHqUIH",
+  "updatesEnabled": false
 }

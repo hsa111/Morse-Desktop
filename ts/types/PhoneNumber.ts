@@ -26,19 +26,20 @@ function _format(
 }
 
 export function isValidNumber(
-  phoneNumber: string,
-  options?: {
+  _phoneNumber: string,
+  _options?: {
     regionCode?: string;
   }
 ): boolean {
-  const { regionCode } = options || { regionCode: undefined };
-  try {
-    const parsedNumber = instance.parse(phoneNumber, regionCode);
+  return true;
+  // const { regionCode } = options || { regionCode: undefined };
+  // try {
+  //   const parsedNumber = instance.parse(phoneNumber, regionCode);
 
-    return instance.isValidNumber(parsedNumber);
-  } catch (error) {
-    return false;
-  }
+  //   return instance.isValidNumber(parsedNumber);
+  // } catch (error) {
+  //   return false;
+  // }
 }
 
 export const format = memoizee(_format, {
@@ -57,11 +58,12 @@ export function parse(
   const { regionCode } = options;
   const parsedNumber = instance.parse(phoneNumber, regionCode);
 
-  if (instance.isValidNumber(parsedNumber)) {
-    return instance.format(parsedNumber, PhoneNumberFormat.E164);
-  }
+  // if (instance.isValidNumber(parsedNumber)) {
+  //   return instance.format(parsedNumber, PhoneNumberFormat.E164);
+  // }
 
-  return phoneNumber;
+  // return phoneNumber;
+  return instance.format(parsedNumber, PhoneNumberFormat.E164);
 }
 
 export function normalize(
@@ -72,11 +74,12 @@ export function normalize(
   try {
     const parsedNumber = instance.parse(phoneNumber, regionCode);
 
-    if (instance.isValidNumber(parsedNumber)) {
-      return instance.format(parsedNumber, PhoneNumberFormat.E164);
-    }
+    // if (instance.isValidNumber(parsedNumber)) {
+    //   return instance.format(parsedNumber, PhoneNumberFormat.E164);
+    // }
 
-    return undefined;
+    // return undefined;
+    return instance.format(parsedNumber, PhoneNumberFormat.E164);
   } catch (error) {
     return undefined;
   }

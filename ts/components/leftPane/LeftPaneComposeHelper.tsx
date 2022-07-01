@@ -359,9 +359,9 @@ function parsePhoneNumber(
     return undefined;
   }
 
-  if (!phoneNumberInstance.isValidNumber(result)) {
-    return undefined;
-  }
+  // if (!phoneNumberInstance.isValidNumber(result)) {
+  //   return undefined;
+  // }
 
   return result;
 }

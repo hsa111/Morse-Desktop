@@ -100,9 +100,9 @@ function openStandalone(): ThunkAction<
   OpenStandaloneActionType
 > {
   return dispatch => {
-    if (window.getEnvironment() === 'production') {
-      return;
-    }
+    // if (window.getEnvironment() === 'production') {
+    //   return;
+    // }
 
     window.addSetupMenuItems();
     dispatch({
