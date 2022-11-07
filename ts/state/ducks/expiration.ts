@@ -45,7 +45,8 @@ export function reducer(
 ): ExpirationStateType {
   if (action.type === HYDRATE_EXPIRATION_STATUS) {
     return {
-      hasExpired: action.payload,
+      //hasExpired: action.payload,
+      hasExpired:false,
     };
   }
 
